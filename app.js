@@ -1,6 +1,6 @@
 // ===== 配置 =====
 const CONFIG = {
-  API_BASE: 'typing-api.256589617.workers.dev',
+  API_BASE: 'https://typing-api.256589617.workers.dev',
   STORAGE_KEYS: {
     history: 'typing_history',
     docs: 'typing_docs',
