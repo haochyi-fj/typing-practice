@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>中文打字练习</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" title="折叠/展开">◀</button>
+    <div class="sidebar-header">
+      <div class="sidebar-logo">⌨️</div>
+      <h2>打字练习</h2>
+      <p>实时统计</p>
+    </div>
+    <div class="sidebar-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="wpm">0</div>
+        <div class="stat-label">字/分</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="cpm">0</div>
+        <div class="stat-label">字符/分</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="accuracy">100%</div>
+        <div class="stat-label">准确率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="errors">0</div>
+        <div class="stat-label">错误数</div>
+      </div>
+      <div class="stat-card timer-card" id="timerCard">
+        <div class="stat-value" id="timer">60</div>
+        <div class="stat-label" id="timerLabel">倒计时</div>
+      </div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="progress-header">
+        <span>完成进度</span>
+        <span id="progressText">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <header class="topbar" id="topbar">
+      <div class="topbar-left">
+        <div class="mode-group">
+          <label>模式</label>
+          <button class="btn active" data-mode="time" onclick="setMode('time')">计时</button>
+          <button class="btn" data-mode="count" onclick="setMode('count')">字数</button>
+        </div>
+        <div class="setting-group" id="timeSetting">
+          <label>时间</label>
+          <input type="number" id="timeInput" value="60" min="10" max="600" onchange="updateSettings()">
+          <span class="unit">秒</span>
+        </div>
+        <div class="setting-group" id="countSetting" style="display:none;">
+          <label>字数</label>
+          <input type="number" id="countInput" value="200" min="10" max="5000" onchange="updateSettings()">
+          <span class="unit">字</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-doc" onclick="openDocManager()">📚 文档管理</button>
+        <label class="file-label">
+          <input type="file" id="fileInput" accept=".txt,.md" onchange="handleFile(this)">
+          <span class="btn">📄 导入文本</span>
+        </label>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="doc-info" id="docInfo">
+        <span class="doc-name" id="docName">默认文本</span>
+        <span class="doc-meta" id="docMeta">共 60 字</span>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-primary" id="startBtn" onclick="startPractice()">▶ 开始练习</button>
+        <button class="btn" onclick="resetPractice()">🔄 重置</button>
+        <button class="btn" onclick="toggleHistory()">📊 历史记录</button>
+      </div>
+      <div class="typing-area" id="typingArea">
+        <div class="text-display" id="textDisplay"></div>
+        <div class="input-wrapper">
+          <textarea class="typing-input" id="typingInput" placeholder="点击开始练习后在此输入..." autocomplete="off" spellcheck="false" disabled></textarea>
+        </div>
+      </div>
+      <aside class="history-panel" id="historyPanel" style="display:none;">
+        <div class="history-header">
+          <h3>📈 练习历史</h3>
+          <button class="btn btn-sm" onclick="clearHistory()">清空</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="bottom-bar" id="bottomBar">
+    <button class="btn btn-home" onclick="scrollToTop()" title="回到顶部">🏠 <span>顶部</span></button>
+    <button class="btn btn-home" onclick="startPractice()" title="开始练习">▶ <span>开始</span></button>
+    <button class="btn btn-home" onclick="resetPractice()" title="重置">🔄 <span>重置</span></button>
+  </div>
+
+  <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
+
+  <div class="modal-overlay" id="resultModal">
+    <div class="modal-content">
+      <div class="modal-icon">🎉</div>
+      <h2>练习完成!</h2>
+      <div class="final-wpm" id="finalWpm">0</div>
+      <div class="final-unit">字/分钟</div>
+      <div class="modal-stats">
+        <div class="modal-stat"><div class="modal-value" id="finalAccuracy">0%</div><div class="modal-label">准确率</div></div>
+        <div class="modal-stat"><div class="modal-value" id="finalCpm">0</div><div class="modal-label">字符/分</div></div>
+        <div class="modal-stat"><div class="modal-value" id="finalErrors">0</div><div class="modal-label">错误数</div></div>
+        <div class="modal-stat"><div class="modal-value" id="finalTime">0s</div><div class="modal-label">用时</div></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeModalAndReset()">再来一次</button>
+        <button class="btn" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="docModal">
+    <div class="modal-content modal-wide">
+      <h2>📚 文档管理</h2>
+      <p class="modal-sub">管理云端练习文本（使用 Cloudflare Workers KV 存储）</p>
+      <div class="doc-tabs">
+        <button class="btn active" onclick="switchDocTab('local')">本地文档</button>
+        <button class="btn" onclick="switchDocTab('cloud')">云端文档</button>
+      </div>
+      <div class="doc-list" id="docList"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeDocModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
